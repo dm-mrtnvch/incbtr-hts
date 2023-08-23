@@ -5,6 +5,7 @@ app.use(express.json())
 
 type RequestWithParams<P> = Request<P, {}, {}, {}>
 type RequestWithBody<B> = Request<{}, {}, B, {}>
+type RequestWithBodyAndParams<P, B> = Request<P, {}, B, {} >
 
 type ErrorsMessages  = {
   field: string
@@ -57,7 +58,6 @@ const videoDb: VideoType[] = [
 app.get('/videos', (req: Request, res: Response) => {
   res.send(videoDb)
 })
-
 app.get('/videos/:id', (req: RequestWithParams<{id: string}>, res: Response) => {
   const { id } = req.params
   const video = videoDb.find(video => String(video.id) === id)
@@ -69,7 +69,6 @@ app.get('/videos/:id', (req: RequestWithParams<{id: string}>, res: Response) => 
 
   res.send(video)
 })
-
 app.post('/videos', (req: RequestWithBody<{
   title: string,
   author: string,
@@ -129,4 +128,93 @@ app.post('/videos', (req: RequestWithBody<{
   videoDb.push(newVideo)
 
   res.status(201).send(newVideo)
+})
+
+app.put('/videos/:id', (req: RequestWithBodyAndParams<{id: string}, VideoType>, res) => {
+  const {id} = req.params
+  let {author, canBeDownloaded, availableResolutions, minAgeRestriction, title, publicationDate, createdAt} = req.body
+
+  const video = videoDb.find(video => String(video.id) === id)
+
+  if(!video) {
+    res.sendStatus(404)
+    return
+  }
+
+  let errors: ErrorType = {
+    errorsMessages: []
+  }
+
+  if(!title || !title.length || title.trim().length > 40) {
+    errors.errorsMessages.push({
+      field: 'title',
+      message: 'Invalid title field'
+    })
+  }
+
+  if(!author || !author.length || author.trim().length > 20) {
+    errors.errorsMessages.push({
+      field: 'author',
+      message: 'Invalid author field'
+    })
+  }
+
+  if(Array.isArray(availableResolutions) && availableResolutions.length > 0) {
+    availableResolutions.map(resolution => {
+      !AvailableResolutionsEnum[resolution] && errors.errorsMessages.push({
+        field: 'availableResolutions',
+        message: 'Invalid availableResolutions field'
+      })
+    })
+  } else {
+    availableResolutions = []
+  }
+
+  if(canBeDownloaded && typeof canBeDownloaded !== "boolean"){
+    errors.errorsMessages.push({
+      field: 'canBeDownloaded',
+      message: 'Invalid canBeDownloaded field'
+    })
+  }
+
+  if (minAgeRestriction && (typeof minAgeRestriction !== 'number' || minAgeRestriction < 1 || minAgeRestriction > 18)) {
+    errors.errorsMessages.push({
+      field: 'minAgeRestriction',
+      message: 'Invalid minAgeRestriction field'
+    })
+  }
+
+  if(errors.errorsMessages.length > 0){
+    res.status(400).send(errors)
+    return
+  }
+
+  const updatedVideo: VideoType = {
+    id: +id,
+    availableResolutions,
+    minAgeRestriction: minAgeRestriction || null,
+    title,
+    author,
+    canBeDownloaded: canBeDownloaded || false,
+    createdAt,
+    publicationDate
+  }
+
+  Object.assign(video, updatedVideo)
+  res.sendStatus(204)
+})
+
+app.delete('videos/:id', (req: RequestWithParams<{ id: string }>, res: Response) => {
+  const { id } = req.params
+
+  const videoIndexToRemove = videoDb.findIndex(video => String(video.id) === id)
+
+  if(videoIndexToRemove !== -1){
+    videoDb.splice(videoIndexToRemove, 1)
+    res.sendStatus(204)
+    return
+  } else {
+    res.sendStatus(404)
+    return
+  }
 })
