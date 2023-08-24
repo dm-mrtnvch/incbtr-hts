@@ -205,7 +205,7 @@ app.put('/videos/:id', (req: RequestWithBodyAndParams<{id: string}, VideoType>, 
   res.sendStatus(204)
 })
 
-app.delete('videos/:id', (req: RequestWithParams<{ id: string }>, res: Response) => {
+app.delete('/videos/:id', (req: RequestWithParams<{ id: string }>, res: Response) => {
   const { id } = req.params
 
   const videoIndexToRemove = videoDb.findIndex(video => String(video.id) === id)
