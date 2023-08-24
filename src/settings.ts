@@ -124,8 +124,7 @@ app.post('/videos', (req: RequestWithBody<{
     createdAt: createdAt.toISOString(),
     publicationDate: publicationDate.toISOString()
   }
-  console.log('vv', videoDb)
-  console.log('vv', videoDb)
+
   videoDb.push(newVideo)
 
   res.status(201).send(newVideo)
@@ -206,8 +205,8 @@ app.put('/videos/:id', (req: RequestWithBodyAndParams<{id: string}, VideoType>, 
     title,
     author,
     canBeDownloaded: canBeDownloaded || false,
-    createdAt,
-    publicationDate
+    createdAt: video.createdAt,
+    publicationDate: publicationDate ?? video.publicationDate
   }
 
   Object.assign(video, updatedVideo)
