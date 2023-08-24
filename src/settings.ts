@@ -124,7 +124,8 @@ app.post('/videos', (req: RequestWithBody<{
     createdAt: createdAt.toISOString(),
     publicationDate: publicationDate.toISOString()
   }
-
+  console.log('vv', videoDb)
+  console.log('vv', videoDb)
   videoDb.push(newVideo)
 
   res.status(201).send(newVideo)
@@ -217,4 +218,9 @@ app.delete('videos/:id', (req: RequestWithParams<{ id: string }>, res: Response)
     res.sendStatus(404)
     return
   }
+})
+
+app.delete('/testing/all-data', (req: Request, res: Response) => {
+  videoDb.length = 0
+  res.sendStatus(204)
 })
