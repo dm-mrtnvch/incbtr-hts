@@ -185,6 +185,15 @@ app.put('/videos/:id', (req: RequestWithBodyAndParams<{id: string}, VideoType>, 
     })
   }
 
+  const validDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+
+  if(publicationDate && !validDatePattern.test(publicationDate)) {
+    errors.errorsMessages.push({
+      field: 'publicationDate',
+      message: 'Invalid publicationDate field'
+    })
+  }
+
   if(errors.errorsMessages.length > 0){
     res.status(400).send(errors)
     return
